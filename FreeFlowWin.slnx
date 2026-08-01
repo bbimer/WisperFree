@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="FreeFlowWin.App/FreeFlowWin.App.csproj" />
+  <Project Path="FreeFlowWin.Core/FreeFlowWin.Core.csproj" />
+  <Project Path="FreeFlowWin.TestApp/FreeFlowWin.TestApp.csproj" />
+</Solution>
