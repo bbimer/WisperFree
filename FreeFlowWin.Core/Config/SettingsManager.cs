@@ -29,6 +29,11 @@ namespace FreeFlowWin.Core.Config
 
         public UserSettings Settings => _settings;
 
+        public void Reload()
+        {
+            _settings = LoadSettings();
+        }
+
         public SettingsManager()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);

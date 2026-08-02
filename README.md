@@ -60,6 +60,31 @@
 
 ---
 
+## 💻 7. Offline Local Whisper AI (Zero VPN / Zero API)
+
+FreeFlow Studio features a **100% standalone offline transcription engine** powered by `Whisper.net` and `ggml` C++ runtime. 
+
+### Why Use Local Mode?
+* 🔒 **Complete Privacy**: Audio never leaves your computer.
+* 🌐 **Bypass VPN / Network Blocks**: Zero dependence on cloud APIs or Cloudflare WAF restrictions.
+* 💸 **Unlimited & Free**: No API quotas, usage limits, or subscription costs.
+
+### Available GGML Models
+
+| Model | File Size | VRAM / RAM | Speed | Accuracy | Best For |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`ggml-base.bin`** | ~140 MB | ~500 MB | ⚡⚡⚡ Instant | Good | Quick dictation & low-spec laptops |
+| **`ggml-small.bin`** *(Default)* | ~460 MB | ~1.0 GB | ⚡⚡ Very Fast | High | Balanced daily dictation (Russian & English) |
+| **`ggml-large-v3-turbo.bin`** | ~1.5 GB | ~3.0 GB | ⚡ Fast | 🎯 Maximum | Technical terms, accents, & complex scripts |
+
+### How to Enable Local Mode
+1. Launch **FreeFlow Studio** and navigate to the **General** tab.
+2. Under **Local Mode (Whisper.net)**, toggle the switch to **ON**.
+3. Select your desired model (`ggml-small.bin` recommended).
+4. The application will automatically download the GGML model directly to `%AppData%\FreeFlowWindows\Models\` on first use and initialize the offline engine.
+
+---
+
 ## 🏗️ Architecture & Technology Stack
 
 - **Framework**: C# / .NET 8 WPF

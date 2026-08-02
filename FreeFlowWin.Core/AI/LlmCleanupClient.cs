@@ -17,7 +17,15 @@ namespace FreeFlowWin.Core.AI
         {
             _apiKey = apiKey;
             _apiBaseUrl = apiBaseUrl.TrimEnd('/');
-            _httpClient = new HttpClient();
+            
+            var handler = new HttpClientHandler
+            {
+                UseProxy = true,
+                DefaultProxyCredentials = System.Net.CredentialCache.DefaultCredentials
+            };
+            
+            _httpClient = new HttpClient(handler);
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
         }
 
         public async Task<string> CleanupTextAsync(string rawTranscript, string contextSummary, string model = "llama-3.3-70b-versatile")

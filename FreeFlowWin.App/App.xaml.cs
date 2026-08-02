@@ -63,6 +63,9 @@ namespace FreeFlowWin.App
             // 1. Initialize settings manager
             _settingsManager = new SettingsManager();
             _statsManager = new StatsManager();
+
+            // Auto-register in Windows startup (HKCU, no admin rights needed)
+            RegisterAutoStart();
             string apiKey = _settingsManager.GetApiKey();
 
             // 2. Create settings window and show immediately
@@ -236,10 +239,13 @@ namespace FreeFlowWin.App
         {
             if (!_isRecording)
             {
+                _settingsManager?.Reload();
+                bool useLocal = _settingsManager?.Settings.UseLocalAi ?? false;
                 string apiKey = _settingsManager?.GetApiKey() ?? "";
-                if (string.IsNullOrEmpty(apiKey))
+
+                if (!useLocal && string.IsNullOrEmpty(apiKey))
                 {
-                    Log("[WARNING] Attempted to record without an API Key. Cancelled.");
+                    Log("[WARNING] Attempted to record without an API Key in Cloud Mode. Cancelled.");
                     return;
                 }
 
@@ -264,7 +270,6 @@ namespace FreeFlowWin.App
                         _overlayWindow.Show();
                     });
 
-                    bool useLocal = _settingsManager?.Settings.UseLocalAi ?? false;
                     if (useLocal && _localEngine != null && _localEngine.IsLoaded)
                     {
                         _liveCts = new CancellationTokenSource();
@@ -324,13 +329,41 @@ namespace FreeFlowWin.App
                     }
 
                     string rawText = "";
+                    _settingsManager?.Reload();
                     bool useLocal = _settingsManager?.Settings.UseLocalAi ?? false;
                     string spokenLang = _settingsManager?.Settings.SpokenLanguage ?? "ru";
                     string transMode = _settingsManager?.Settings.TranslationMode ?? "transcribe";
 
-                    if (useLocal && _localEngine != null && _localEngine.IsLoaded)
+                    if (useLocal)
                     {
-                        rawText = await _localEngine.TranscribeAsync(_tempFile, language: spokenLang, mode: transMode);
+                        if (_localEngine == null)
+                        {
+                            InitializeAiEngine("");
+                        }
+
+                        if (_localEngine != null)
+                        {
+                            if (!_localEngine.IsLoaded)
+                            {
+                                Log("[LOCAL AI] Model is initializing, waiting for load to complete...");
+                                int waitAttempts = 0;
+                                while (!_localEngine.IsLoaded && waitAttempts < 100)
+                                {
+                                    await Task.Delay(100);
+                                    waitAttempts++;
+                                }
+                            }
+
+                            if (_localEngine.IsLoaded)
+                            {
+                                rawText = await _localEngine.TranscribeAsync(_tempFile, language: spokenLang, mode: transMode);
+                            }
+                            else
+                            {
+                                Log("[ERROR] Local Whisper model is still loading. Please try again in a few seconds.");
+                                return;
+                            }
+                        }
                     }
                     else
                     {
@@ -346,7 +379,7 @@ namespace FreeFlowWin.App
                         }
                         else
                         {
-                            Log("[ERROR] Cloud API client not initialized (missing API key).");
+                            Log("[ERROR] Cloud API client not initialized. Please set Groq API Key in General settings.");
                             return;
                         }
                     }
@@ -359,54 +392,71 @@ namespace FreeFlowWin.App
                         return;
                     }
 
-                    Log("[LLM] Sending text for context cleanup...");
-                    
-                    string apiCleanupKey = _settingsManager?.GetApiKey() ?? "";
-                    if (_cleanupClient == null && !string.IsNullOrEmpty(apiCleanupKey))
-                    {
-                        InitializeAiEngine(apiCleanupKey);
-                    }
+                    string finalText = rawText.Trim();
 
-                    if (_cleanupClient != null)
+                    // Only attempt LLM cleanup if API client is available
+                    if (!useLocal)
                     {
-                        string customVocab = _settingsManager?.Settings.CustomTerms ?? "";
-                        string cleanedText = await _cleanupClient.CleanupTextAsync(rawText.Trim(), $"{context} | Custom Vocabulary: {customVocab}");
-                        Log($"[FINAL RESULT] \"{cleanedText}\"");
-
-                        if (!string.IsNullOrWhiteSpace(cleanedText))
+                        Log("[LLM] Sending text for context cleanup...");
+                        string apiCleanupKey = _settingsManager?.GetApiKey() ?? "";
+                        if (_cleanupClient == null && !string.IsNullOrEmpty(apiCleanupKey))
                         {
-                            Log("[INPUT] Emulating paste (Ctrl+V)...");
-                            await Task.Delay(200);
-                            InputSimulator.PasteText(cleanedText);
+                            InitializeAiEngine(apiCleanupKey);
+                        }
 
-                            // Save session statistics
+                        if (_cleanupClient != null)
+                        {
                             try
                             {
-                                double exactDuration = durationSeconds;
-                                if (File.Exists(_tempFile))
+                                string customVocab = _settingsManager?.Settings.CustomTerms ?? "";
+                                string cleaned = await _cleanupClient.CleanupTextAsync(rawText.Trim(), $"{context} | Custom Vocabulary: {customVocab}");
+                                if (!string.IsNullOrWhiteSpace(cleaned))
                                 {
-                                    var fileInfo = new FileInfo(_tempFile);
-                                    if (fileInfo.Length > 44)
-                                    {
-                                        exactDuration = (fileInfo.Length - 44) / 32000.0;
-                                    }
+                                    finalText = cleaned;
                                 }
-
-                                if (exactDuration < 0.1) exactDuration = 0.5;
-
-                                int wordCount = cleanedText.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
-                                _statsManager?.AddSession(wordCount, exactDuration);
-                                Log($"[STATS] Recorded session: {wordCount} words in {exactDuration:F1} sec. ({wordCount / exactDuration:F1} words/sec)");
                             }
-                            catch (Exception exStats)
+                            catch (Exception exLlm)
                             {
-                                Log($"[ERROR] Failed to save statistics: {exStats.Message}");
+                                Log($"[WARNING] LLM cleanup bypassed ({exLlm.Message}). Using raw transcript.");
                             }
                         }
                     }
                     else
                     {
-                        Log("[ERROR] LLM cleanup client not initialized.");
+                        Log("[LOCAL AI] Using local raw transcript (Offline mode).");
+                    }
+
+                    Log($"[FINAL RESULT] \"{finalText}\"");
+
+                    if (!string.IsNullOrWhiteSpace(finalText))
+                    {
+                        Log("[INPUT] Emulating paste (Ctrl+V)...");
+                        await Task.Delay(200);
+                        InputSimulator.PasteText(finalText);
+
+                        // Save session statistics
+                        try
+                        {
+                            double exactDuration = durationSeconds;
+                            if (File.Exists(_tempFile))
+                            {
+                                var fileInfo = new FileInfo(_tempFile);
+                                if (fileInfo.Length > 44)
+                                {
+                                    exactDuration = (fileInfo.Length - 44) / 32000.0;
+                                }
+                            }
+
+                            if (exactDuration < 0.1) exactDuration = 0.5;
+
+                            int wordCount = finalText.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                            _statsManager?.AddSession(wordCount, exactDuration);
+                            Log($"[STATS] Recorded session: {wordCount} words in {exactDuration:F1} sec.");
+                        }
+                        catch (Exception exStats)
+                        {
+                            Log($"[ERROR] Failed to save statistics: {exStats.Message}");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -435,13 +485,14 @@ namespace FreeFlowWin.App
 
         private void OnVolumeChanged(float volume)
         {
-            if (_overlayWindow != null)
+            try
             {
                 Dispatcher.Invoke(() =>
                 {
-                    _overlayWindow.UpdateVolume(volume);
+                    _overlayWindow?.UpdateVolume(volume);
                 });
             }
+            catch { }
         }
 
         private async Task LiveTranscribeLoopAsync(CancellationToken token)
@@ -501,6 +552,31 @@ namespace FreeFlowWin.App
         private void Log(string message)
         {
             _mainWindow?.LogMessage(message);
+        }
+
+        private static void RegisterAutoStart()
+        {
+            try
+            {
+                const string appName = "FreeFlowWin";
+                string exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+                if (string.IsNullOrEmpty(exePath)) return;
+
+                using var key = Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Run", writable: true);
+                if (key == null) return;
+
+                var existing = key.GetValue(appName) as string;
+                if (existing != exePath)
+                {
+                    key.SetValue(appName, $"\"{exePath}\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Non-critical — app works fine without autostart
+                Console.WriteLine($"[AUTOSTART] Failed to register: {ex.Message}");
+            }
         }
 
         private void ExitApp()
