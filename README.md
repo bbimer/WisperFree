@@ -5,6 +5,7 @@
 ![FreeFlow Studio Banner - High Performance Voice AI Suite](assets/logo.png)
 
 [![Build Status](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/bbimer/whisper-freeflow-studio?color=success)](https://github.com/bbimer/whisper-freeflow-studio/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework: .NET 8 WPF](https://img.shields.io/badge/.NET-8.0%20WPF-512BD4.svg)](https://dotnet.microsoft.com/)
 [![UI: Fluent Dark](https://img.shields.io/badge/UI-WPF.Ui%20Fluent%20Dark-0078D4.svg)](https://github.com/lepoco/wpfui)
