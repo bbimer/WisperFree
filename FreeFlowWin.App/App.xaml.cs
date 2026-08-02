@@ -148,6 +148,14 @@ namespace FreeFlowWin.App
             return string.Join(" + ", parts);
         }
 
+        public void ReinitializeAiEngine()
+        {
+            _localEngine?.Dispose();
+            _localEngine = null;
+            string apiKey = _settingsManager?.GetApiKey() ?? "";
+            InitializeAiEngine(apiKey);
+        }
+
         private void InitializeAiEngine(string apiKey)
         {
             bool useLocal = _settingsManager?.Settings.UseLocalAi ?? false;
@@ -159,11 +167,21 @@ namespace FreeFlowWin.App
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string modelsDir = Path.Combine(appData, "FreeFlowWindows", "Models");
                 _localEngine = new LocalTranscriptionEngine(modelsDir, modelName);
+
+                int lastLoggedStep = -1;
                 Task.Run(async () =>
                 {
                     try
                     {
-                        await _localEngine.LoadModelAsync(null);
+                        await _localEngine.LoadModelAsync(progress =>
+                        {
+                            int currentStep = ((int)progress) / 10 * 10;
+                            if (currentStep != lastLoggedStep)
+                            {
+                                lastLoggedStep = currentStep;
+                                Log($"[LOCAL AI] Downloading model {modelName}: {currentStep}%...");
+                            }
+                        });
                         Log($"[LOCAL AI] Model {modelName} loaded successfully. Ready for offline use.");
                     }
                     catch (Exception ex)
@@ -255,7 +273,7 @@ namespace FreeFlowWin.App
 
                 try
                 {
-                    if (File.Exists(_tempFile)) File.Delete(_tempFile);
+                    try { if (File.Exists(_tempFile)) File.Delete(_tempFile); } catch { }
                     
                     int deviceIndex = _settingsManager?.Settings.AudioDeviceIndex ?? 0;
                     _audioEngine?.StartRecording(_tempFile, deviceIndex);
@@ -270,7 +288,8 @@ namespace FreeFlowWin.App
                         _overlayWindow.Show();
                     });
 
-                    if (useLocal && _localEngine != null && _localEngine.IsLoaded)
+                    bool enableLivePreview = _settingsManager?.Settings.EnableLivePreview ?? false;
+                    if (useLocal && enableLivePreview && _localEngine != null && _localEngine.IsLoaded)
                     {
                         _liveCts = new CancellationTokenSource();
                         _ = Task.Run(() => LiveTranscribeLoopAsync(_liveCts.Token));
@@ -343,11 +362,11 @@ namespace FreeFlowWin.App
 
                         if (_localEngine != null)
                         {
-                            if (!_localEngine.IsLoaded)
+                            if (!_localEngine.IsLoaded && !_localEngine.IsInitializationFailed)
                             {
-                                Log("[LOCAL AI] Model is initializing, waiting for load to complete...");
+                                Log("[LOCAL AI] Local Whisper model is initializing/downloading. Waiting for completion...");
                                 int waitAttempts = 0;
-                                while (!_localEngine.IsLoaded && waitAttempts < 100)
+                                while (!_localEngine.IsLoaded && !_localEngine.IsInitializationFailed && waitAttempts < 600)
                                 {
                                     await Task.Delay(100);
                                     waitAttempts++;
@@ -358,9 +377,14 @@ namespace FreeFlowWin.App
                             {
                                 rawText = await _localEngine.TranscribeAsync(_tempFile, language: spokenLang, mode: transMode);
                             }
+                            else if (_localEngine.IsInitializationFailed)
+                            {
+                                Log($"[ERROR] Local Whisper model failed to initialize: {_localEngine.InitializationError}");
+                                return;
+                            }
                             else
                             {
-                                Log("[ERROR] Local Whisper model is still loading. Please try again in a few seconds.");
+                                Log("[ERROR] Local Whisper model download in progress. Please wait a moment and try again.");
                                 return;
                             }
                         }
@@ -471,13 +495,45 @@ namespace FreeFlowWin.App
             if (string.IsNullOrWhiteSpace(text)) return true;
 
             string normalized = text.Trim().ToLowerInvariant();
-            if (normalized.Contains("продолжение следует") ||
-                normalized.Contains("субтитры") ||
-                normalized.Contains("благодарю за внимание") ||
-                normalized.Contains("спасибо") ||
-                normalized.Contains("подпишитесь"))
+
+            // Ignore bracketed tags e.g. [музыка], (музыка), [аплодисменты], [подписывайтесь на канал]
+            if ((normalized.StartsWith("[") && normalized.EndsWith("]")) ||
+                (normalized.StartsWith("(") && normalized.EndsWith(")")))
             {
                 return true;
+            }
+
+            string[] hallucinations = new[]
+            {
+                "продолжение следует",
+                "субтитры",
+                "благодарю за внимание",
+                "спасибо за просмотр",
+                "подпишитесь",
+                "подписывайтесь",
+                "музыка",
+                "аплодисменты",
+                "смех",
+                "погружение",
+                "редактор",
+                "корректор",
+                "переводчик",
+                "music",
+                "applause",
+                "laughter",
+                "thanks for watching",
+                "subscribe"
+            };
+
+            foreach (var keyword in hallucinations)
+            {
+                if (normalized.Contains(keyword))
+                {
+                    if (normalized.Length <= keyword.Length + 12 || normalized.StartsWith("["))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;

@@ -358,11 +358,23 @@
                                                 
                                                 <StackPanel x:Name="LocalModelPanel" Margin="0,14,0,0" Visibility="Collapsed">
                                                     <TextBlock Text="Model" FontSize="12" Foreground="#6E6E78" Margin="0,0,0,6"/>
-                                                    <ComboBox x:Name="ModelComboBox" Height="38" SelectionChanged="ModelComboBox_SelectionChanged" HorizontalAlignment="Stretch">
+                                                    <ComboBox x:Name="ModelComboBox" Height="38" SelectionChanged="ModelComboBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="0,0,0,12">
                                                         <ComboBoxItem Content="ggml-base.bin (140 MB)"/>
                                                         <ComboBoxItem Content="ggml-small.bin (460 MB)"/>
                                                         <ComboBoxItem Content="ggml-large-v3-turbo.bin (1.5 GB)"/>
                                                     </ComboBox>
+
+                                                    <Grid Margin="0,4,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                            <TextBlock Text="Live Stream Preview" FontSize="12.5" FontWeight="SemiBold" Foreground="#D0D0D8"/>
+                                                            <TextBlock Text="Real-time dictation preview (OFF = background audio ignored)" FontSize="10.5" Foreground="#6E6E78" Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                        <ui:ToggleSwitch Grid.Column="1" x:Name="LivePreviewCheckBox" Checked="LivePreviewCheckBox_Changed" Unchecked="LivePreviewCheckBox_Changed" VerticalAlignment="Center"/>
+                                                    </Grid>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>

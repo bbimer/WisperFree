@@ -20,6 +20,7 @@ namespace FreeFlowWin.Core.Config
         public bool HotkeyWin { get; set; } = false;
         public string SpokenLanguage { get; set; } = "ru"; // по умолчанию русский
         public string TranslationMode { get; set; } = "transcribe"; // "transcribe" или "translate"
+        public bool EnableLivePreview { get; set; } = false; // По умолчанию live-прослушка отключена
     }
 
     public class SettingsManager

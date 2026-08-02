@@ -1,0 +1,29 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore Dependencies
+      run: dotnet restore FreeFlowWin.slnx
+
+    - name: Build Solution
+      run: dotnet build FreeFlowWin.slnx -c Release --no-restore
+
+    - name: Run Test Application / Suite
+      run: dotnet build FreeFlowWin.TestApp/FreeFlowWin.TestApp.csproj -c Release

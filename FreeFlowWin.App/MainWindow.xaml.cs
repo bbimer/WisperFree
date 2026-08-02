@@ -80,6 +80,7 @@ namespace FreeFlowWin.App
             // API key from DPAPI
             ApiKeyBox.Password = _settingsManager.GetApiKey();
             LocalAiCheckBox.IsChecked = _settingsManager.Settings.UseLocalAi;
+            LivePreviewCheckBox.IsChecked = _settingsManager.Settings.EnableLivePreview;
             LocalModelPanel.Visibility = _settingsManager.Settings.UseLocalAi ? Visibility.Visible : Visibility.Collapsed;
 
             // Default model selection
@@ -332,6 +333,22 @@ namespace FreeFlowWin.App
             LogMessage(isChecked ? "Local Whisper mode enabled." : "Cloud Groq API mode enabled.");
             
             Environment.SetEnvironmentVariable("USE_LOCAL_AI", isChecked.ToString(), EnvironmentVariableTarget.Process);
+
+            if (System.Windows.Application.Current is App myApp)
+            {
+                myApp.ReinitializeAiEngine();
+            }
+        }
+
+        private void LivePreviewCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+
+            bool isChecked = LivePreviewCheckBox.IsChecked ?? false;
+            _settingsManager.Settings.EnableLivePreview = isChecked;
+            _settingsManager.SaveSettings();
+
+            LogMessage(isChecked ? "Live stream preview enabled." : "Live stream preview disabled (background noise ignored).");
         }
 
         private void ModelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -352,6 +369,11 @@ namespace FreeFlowWin.App
                 LogMessage($"Whisper local model changed: {modelName}");
 
                 Environment.SetEnvironmentVariable("WHISPER_MODEL", modelName, EnvironmentVariableTarget.Process);
+
+                if (System.Windows.Application.Current is App myApp)
+                {
+                    myApp.ReinitializeAiEngine();
+                }
             }
         }
 

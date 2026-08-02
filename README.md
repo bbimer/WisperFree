@@ -2,8 +2,9 @@
 
 > **Next-Gen AI Voice Dictation, Voiceover QA Validator & Acoustic Prosody Analyzer for Windows.**
 
-![FreeFlow Studio Banner](assets/logo.png)
+![FreeFlow Studio Banner - High Performance Voice AI Suite](assets/logo.png)
 
+[![Build Status](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework: .NET 8 WPF](https://img.shields.io/badge/.NET-8.0%20WPF-512BD4.svg)](https://dotnet.microsoft.com/)
 [![UI: Fluent Dark](https://img.shields.io/badge/UI-WPF.Ui%20Fluent%20Dark-0078D4.svg)](https://github.com/lepoco/wpfui)
@@ -11,6 +12,27 @@
 [![Platform: Windows 10/11](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D4.svg)](https://microsoft.com)
 
 **FreeFlow Studio** is a high-performance Windows desktop suite engineered for video creators, crypto marketers, podcasters, and AI voice producers. It combines ultra-fast global voice dictation with automated **STT voiceover validation**, **acoustic human-likeness scoring (Prosody Analysis)**, and **batch audio conversion**.
+
+---
+
+## 📑 Table of Contents
+- [🚀 Quick Start](#-quick-start)
+- [🌟 Key Features](#-key-features)
+- [💻 Offline Local Whisper AI](#-offline-local-whisper-ai-zero-vpn--zero-api)
+- [🔒 Security & Key Protection](#-security--key-protection)
+- [🛡️ Antivirus & SmartScreen Notes](#️-antivirus--smartscreen-notes)
+- [🏗️ Architecture & Technology Stack](#️-architecture--technology-stack)
+- [🛠️ Build & Installation Guide](#️-build--installation-guide)
+- [⚖️ Third-Party Libraries & Licensing](#️-third-party-libraries--licensing)
+- [📜 License](#-license)
+
+---
+
+## 🚀 Quick Start
+
+1. **Download the Latest Release**: Head to the [Releases](https://github.com/bbimer/whisper-freeflow-studio/releases) page and download `FreeFlowStudio-win-x64.zip`.
+2. **Launch Application**: Unpack and run `FreeFlowWin.App.exe`.
+3. **Start Dictating**: Hold **[F9]** to speak, release to instantly transcribe and paste into your active window!
 
 ---
 
@@ -26,7 +48,7 @@
 - **Word-by-Word Diff Matrix**: Visual color-coded token badges displaying exact text matches, mispronunciations, prompter deletions, and extra insertions.
 - **Per-File Report Cards**: Dedicated breakdown cards for every audio take to easily compare performance.
 
-![QA Voiceover Validator](screenshots/qa%20voice.jpg)
+![QA Voiceover Validator Interface showing word diff matrix and accuracy report](screenshots/qa%20voice.jpg)
 
 ---
 
@@ -48,7 +70,7 @@
 - **Audio Extraction**: Rip high-fidelity audio streams directly from video footage.
 - **Custom DSP Parameters**: Adjustable sample rates (44.1kHz, 48kHz), bitrates (up to 320 kbps), and mono/stereo channels.
 
-![Audio Converter](screenshots/audio%20converter.jpg)
+![Audio Converter Interface with progress bars and preset selectors](screenshots/audio%20converter.jpg)
 
 ---
 
@@ -56,11 +78,11 @@
 - Tracks daily, weekly, and monthly dictated word counts.
 - Displays voice-to-typing speedup factor (e.g. `3.8x faster`) and total hours saved.
 
-![General Settings](screenshots/general.jpg)
+![General Settings panel showing productivity statistics and local model controls](screenshots/general.jpg)
 
 ---
 
-## 💻 7. Offline Local Whisper AI (Zero VPN / Zero API)
+## 💻 Offline Local Whisper AI (Zero VPN / Zero API)
 
 FreeFlow Studio features a **100% standalone offline transcription engine** powered by `Whisper.net` and `ggml` C++ runtime. 
 
@@ -69,19 +91,42 @@ FreeFlow Studio features a **100% standalone offline transcription engine** powe
 * 🌐 **Bypass VPN / Network Blocks**: Zero dependence on cloud APIs or Cloudflare WAF restrictions.
 * 💸 **Unlimited & Free**: No API quotas, usage limits, or subscription costs.
 
-### Available GGML Models
+### Available GGML Models & SHA256 Integrity Hashes
 
-| Model | File Size | VRAM / RAM | Speed | Accuracy | Best For |
+| Model | File Size | VRAM / RAM | Speed | SHA256 Checksum | Best For |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`ggml-base.bin`** | ~140 MB | ~500 MB | ⚡⚡⚡ Instant | Good | Quick dictation & low-spec laptops |
-| **`ggml-small.bin`** *(Default)* | ~460 MB | ~1.0 GB | ⚡⚡ Very Fast | High | Balanced daily dictation (Russian & English) |
-| **`ggml-large-v3-turbo.bin`** | ~1.5 GB | ~3.0 GB | ⚡ Fast | 🎯 Maximum | Technical terms, accents, & complex scripts |
+| **`ggml-base.bin`** | ~140 MB | ~500 MB | ⚡⚡⚡ Instant | `60ed5bc226b64f19985ea1053e3047b21ac70d5df564c7ebd00b48f07bd546f8` | Quick dictation & low-spec laptops |
+| **`ggml-small.bin`** *(Default)* | ~460 MB | ~1.0 GB | ⚡⚡ Very Fast | `1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b` | Balanced daily dictation (Russian & English) |
+| **`ggml-large-v3-turbo.bin`** | ~1.5 GB | ~3.0 GB | ⚡ Fast | `5639644d6735a4d651a2d5e381023730e666a0d0a2185b306b4d375084931a54` | Technical terms, accents, & complex scripts |
+
+#### Verification Procedure
+The application automatically verifies the **SHA256 checksum** of downloaded model files prior to loading into memory. You can manually verify model file integrity in PowerShell:
+```powershell
+Get-FileHash "$env:APPDATA\FreeFlowWindows\Models\ggml-small.bin" -Algorithm SHA256
+```
 
 ### How to Enable Local Mode
 1. Launch **FreeFlow Studio** and navigate to the **General** tab.
 2. Under **Local Mode (Whisper.net)**, toggle the switch to **ON**.
 3. Select your desired model (`ggml-small.bin` recommended).
-4. The application will automatically download the GGML model directly to `%AppData%\FreeFlowWindows\Models\` on first use and initialize the offline engine.
+4. The application will automatically download the GGML model directly to `%AppData%\FreeFlowWindows\Models\`, verify its SHA256 hash, and initialize the offline engine.
+
+---
+
+## 🔒 Security & Key Protection
+
+- **Windows DPAPI Encryption**: Cloud API keys (Groq, ElevenLabs) stored in `%AppData%\FreeFlowWindows\settings.json` are encrypted using Windows Data Protection API (`ProtectedData.Protect` scoped to `CurrentUser`).
+- **Environment Variables**: API keys can also be supplied via `GROQ_API_KEY` and `ELEVENLABS_API_KEY` environment variables.
+- For full security disclosures and vulnerability reporting policies, see [SECURITY.md](SECURITY.md).
+
+---
+
+## 🛡️ Antivirus & SmartScreen Notes
+
+FreeFlow Studio uses low-level Windows API hooks (`SetWindowsHookEx` and `SendInput`) to capture keypresses globally and simulate text pasting into active applications.
+
+> [!NOTE]
+> Some antivirus software or Windows SmartScreen may issue a warning for unsigned executables using global hooks. This is a false positive. Official release binaries are signed with a digital code-signing certificate. If compiling locally, you can safely add the build directory to your antivirus exclusions.
 
 ---
 
@@ -89,9 +134,9 @@ FreeFlow Studio features a **100% standalone offline transcription engine** powe
 
 - **Framework**: C# / .NET 8 WPF
 - **Design System**: WPF.Ui (Fluent Dark Mode theme with native Windows 11 glassmorphism)
-- **STT Engine**: Groq Cloud REST API (`whisper-large-v3-turbo`)
+- **STT Engine**: Groq Cloud REST API (`whisper-large-v3-turbo`) & Whisper.net (Offline C++ runtime)
 - **Audio DSP**: NAudio & MediaFoundation API
-- **System Hooks**: Windows P/Invoke (`SetWindowsHookEx`, `GetAsyncKeyState`)
+- **System Hooks**: Windows P/Invoke (`SetWindowsHookEx`, `SendInput`, `GetAsyncKeyState`)
 
 ```
 FreeFlowWin.slnx
@@ -112,8 +157,8 @@ FreeFlowWin.slnx
 
 ```bash
 # Clone the repository
-git clone https://github.com/bbimer/WisperFree.git
-cd WisperFree
+git clone https://github.com/bbimer/whisper-freeflow-studio.git
+cd whisper-freeflow-studio
 
 # Restore and build the solution
 dotnet build FreeFlowWin.slnx -c Release
@@ -124,6 +169,16 @@ dotnet publish FreeFlowWin.App/FreeFlowWin.App.csproj -c Release -r win-x64 --se
 
 ---
 
+## ⚖️ Third-Party Libraries & Licensing
+
+FreeFlow Studio is built on open-source technologies:
+- **Whisper.net** (MIT License) - High-performance .NET binding for whisper.cpp.
+- **WPF.Ui** (MIT License) - Modern Fluent UI library for WPF.
+- **NAudio** (MIT License) - Audio manipulation and playback library for .NET.
+- **Groq Cloud API** & **ElevenLabs API** - Cloud AI services used under respective API terms of service.
+
+---
+
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
