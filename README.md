@@ -4,7 +4,7 @@
 
 ![FreeFlow Studio Banner - High Performance Voice AI Suite](assets/logo.png)
 
-[![Build Status](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml)
+[![Build Status](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bbimer/whisper-freeflow-studio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Framework: .NET 8 WPF](https://img.shields.io/badge/.NET-8.0%20WPF-512BD4.svg)](https://dotnet.microsoft.com/)
 [![UI: Fluent Dark](https://img.shields.io/badge/UI-WPF.Ui%20Fluent%20Dark-0078D4.svg)](https://github.com/lepoco/wpfui)
@@ -30,9 +30,17 @@
 
 ## 🚀 Quick Start
 
-1. **Download the Latest Release**: Head to the [Releases](https://github.com/bbimer/whisper-freeflow-studio/releases) page and download `FreeFlowStudio-win-x64.zip`.
-2. **Launch Application**: Unpack and run `FreeFlowWin.App.exe`.
-3. **Start Dictating**: Hold **[F9]** to speak, release to instantly transcribe and paste into your active window!
+### Option A: Pre-built Binary Release (Recommended)
+1. **Download Release**: Head to [GitHub Releases](https://github.com/bbimer/whisper-freeflow-studio/releases) and download `FreeFlowStudio-win-x64.zip`.
+2. **Extract & Launch**: Unpack the ZIP archive and run `FreeFlowWin.App.exe`.
+3. **Start Dictating**: Hold **[F9]** (or **[Ctrl+Space]**) to speak, release to instantly transcribe and paste into your active window!
+
+### Option B: Run from Source (.NET 8.0 SDK)
+```bash
+git clone https://github.com/bbimer/whisper-freeflow-studio.git
+cd whisper-freeflow-studio
+dotnet run --project FreeFlowWin.App/FreeFlowWin.App.csproj -c Release
+```
 
 ---
 
@@ -77,6 +85,7 @@
 ### 📊 6. Telemetry & Productivity Tracking
 - Tracks daily, weekly, and monthly dictated word counts.
 - Displays voice-to-typing speedup factor (e.g. `3.8x faster`) and total hours saved.
+- **100% Local Storage**: All stats are stored strictly on your local PC (`%AppData%\FreeFlowWindows\stats.json`). See [PRIVACY.md](PRIVACY.md).
 
 ![General Settings panel showing productivity statistics and local model controls](screenshots/general.jpg)
 
@@ -105,19 +114,13 @@ The application automatically verifies the **SHA256 checksum** of downloaded mod
 Get-FileHash "$env:APPDATA\FreeFlowWindows\Models\ggml-small.bin" -Algorithm SHA256
 ```
 
-### How to Enable Local Mode
-1. Launch **FreeFlow Studio** and navigate to the **General** tab.
-2. Under **Local Mode (Whisper.net)**, toggle the switch to **ON**.
-3. Select your desired model (`ggml-small.bin` recommended).
-4. The application will automatically download the GGML model directly to `%AppData%\FreeFlowWindows\Models\`, verify its SHA256 hash, and initialize the offline engine.
-
 ---
 
 ## 🔒 Security & Key Protection
 
 - **Windows DPAPI Encryption**: Cloud API keys (Groq, ElevenLabs) stored in `%AppData%\FreeFlowWindows\settings.json` are encrypted using Windows Data Protection API (`ProtectedData.Protect` scoped to `CurrentUser`).
 - **Environment Variables**: API keys can also be supplied via `GROQ_API_KEY` and `ELEVENLABS_API_KEY` environment variables.
-- For full security disclosures and vulnerability reporting policies, see [SECURITY.md](SECURITY.md).
+- For full security disclosures and vulnerability reporting policies, see [SECURITY.md](SECURITY.md) and [PRIVACY.md](PRIVACY.md).
 
 ---
 
@@ -171,11 +174,15 @@ dotnet publish FreeFlowWin.App/FreeFlowWin.App.csproj -c Release -r win-x64 --se
 
 ## ⚖️ Third-Party Libraries & Licensing
 
-FreeFlow Studio is built on open-source technologies:
-- **Whisper.net** (MIT License) - High-performance .NET binding for whisper.cpp.
-- **WPF.Ui** (MIT License) - Modern Fluent UI library for WPF.
-- **NAudio** (MIT License) - Audio manipulation and playback library for .NET.
-- **Groq Cloud API** & **ElevenLabs API** - Cloud AI services used under respective API terms of service.
+FreeFlow Studio incorporates open-source components and cloud API integrations:
+
+| Component | License / Terms | Commercial Usage | Description / Terms Link |
+| :--- | :--- | :--- | :--- |
+| **Whisper.net** | MIT License | Permitted | .NET binding for whisper.cpp offline engine |
+| **WPF.Ui** | MIT License | Permitted | Modern Fluent UI design controls for WPF |
+| **NAudio** | MIT License | Permitted | Audio recording, playback & DSP framework |
+| **Groq Cloud API** | [Groq Terms](https://groq.com/terms-of-service/) | Subject to API ToS | Fast Cloud Speech-to-Text inference engine |
+| **ElevenLabs API** | [ElevenLabs Terms](https://elevenlabs.io/terms) | Subject to Tier ToS | Voice generation preset & prosody optimization |
 
 ---
 

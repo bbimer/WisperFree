@@ -25,5 +25,6 @@ jobs:
     - name: Build Solution
       run: dotnet build FreeFlowWin.slnx -c Release --no-restore
 
-    - name: Run Test Application / Suite
-      run: dotnet build FreeFlowWin.TestApp/FreeFlowWin.TestApp.csproj -c Release
+    - name: Build & Run Test Harness
+      run: |
+        dotnet build FreeFlowWin.TestApp/FreeFlowWin.TestApp.csproj -c Release

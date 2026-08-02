@@ -6,8 +6,19 @@ We provide security updates for the following versions of **FreeFlow Studio**:
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.6.x   | :white_check_mark: |
 | 1.5.x   | :white_check_mark: |
 | < 1.5.0 | :x:                |
+
+---
+
+## Response SLA & Vulnerability Handling
+
+We take security issues seriously. When a vulnerability report is received:
+
+- **Initial Response SLA**: Within **24 hours** of submission.
+- **Triage & Impact Assessment**: Within **48 hours**.
+- **Fix & Patch Target**: Critical vulnerabilities patched within **7 business days**.
 
 ---
 
@@ -20,6 +31,7 @@ FreeFlow Studio communicates with third-party APIs (e.g. Groq Cloud, ElevenLabs)
   - `GROQ_API_KEY`: API key for Groq Cloud Whisper transcription.
   - `ELEVENLABS_API_KEY`: API key for ElevenLabs voice generation.
 - **Model Checksums**: Downloaded GGML Whisper binaries are verified against known **SHA256** checksums before execution to prevent tamper or corrupt execution.
+- **Privacy Boundary**: Full privacy & local storage details are documented in [PRIVACY.md](PRIVACY.md).
 
 ---
 
@@ -40,5 +52,5 @@ Some third-party Antivirus or Windows SmartScreen suites may flag unsigned execu
 If you discover a security vulnerability in FreeFlow Studio, please report it privately:
 
 1. **Do NOT** open a public GitHub issue for security vulnerabilities.
-2. Send an email describing the issue, impact, and steps to reproduce to `security@freeflow-studio.org` (or contact repository owners privately on GitHub).
-3. We will acknowledge receipt within 48 hours and provide an estimated fix timeline.
+2. Send an email describing the issue, impact, and steps to reproduce to `security@freeflow-studio.org` (or report via GitHub Private Vulnerability Reporting).
+3. If encrypting your report, request our GPG public key at `security@freeflow-studio.org`.
