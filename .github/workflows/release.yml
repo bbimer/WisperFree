@@ -25,6 +25,10 @@ jobs:
       run: |
         dotnet publish FreeFlowWin.App/FreeFlowWin.App.csproj -c Release -r win-x64 --self-contained false -o ./publish/FreeFlowStudio-win-x64
 
+    - name: Clean Non-Windows Runtimes (Optimize Archive Size)
+      run: |
+        Get-ChildItem -Path ./publish/FreeFlowStudio-win-x64/runtimes | Where-Object { $_.Name -ne "win-x64" } | Remove-Item -Recurse -Force
+
     - name: Compress Release Archive
       run: |
         Compress-Archive -Path ./publish/FreeFlowStudio-win-x64/* -DestinationPath ./publish/FreeFlowStudio-win-x64.zip
